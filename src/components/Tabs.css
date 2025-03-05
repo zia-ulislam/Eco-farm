@@ -397,3 +397,9 @@
     transform: translateY(0);
   }
 }
+.material-price{
+    color: black !important;
+    align-items: flex-end;
+    display: flex;
+    justify-content: center;
+}

@@ -13,6 +13,7 @@ import ContactPage from './pages/ContactPage/ContactPage';
 import TutorialPage from './pages/TutorialPage/TutorialPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import Settings from './pages/setting/Settings';
+import ProductList from './components/ProductList';
 import './App.css';
 
 function App() {

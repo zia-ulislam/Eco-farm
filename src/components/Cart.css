@@ -10,7 +10,7 @@
   z-index: 1100;
 }
 
-.cart-container {
+.cart-container-products {
   width: 100%;
   max-width: 400px;
   height: 100%;
@@ -159,7 +159,7 @@
 }
 
 @media (max-width: 480px) {
-  .cart-container {
+  .cart-container-products {
     max-width: 100%;
   }
 }

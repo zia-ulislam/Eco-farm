@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Linkedin, Leaf } from 'lucide-react';
+import { Facebook, Linkedin, } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="footer-logo">
           <Link to="/" className="logo-link">
             {/* <Leaf className="logo-icon" /> */}
-            <img className="logopng" src="/public/images/logo.png" alt="Eco Farm" />
+            <img className="logopng" src="/images/logo.png" alt="Eco Farm" />
             <span>Eco Farm</span>
           </Link>
         </div>

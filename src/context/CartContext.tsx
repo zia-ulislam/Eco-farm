@@ -1,27 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Define types
+
 interface CartItem {
-  product_id: string; // Ensure this matches the type of product.id (converted to string)
+  product_id: string; 
   quantity: number;
 }
 
 interface CartContextType {
   cart: CartItem[];
   addToCart: (product_id: string) => void;
+  removeFromCart: (product_id: string) => void;
   changeQuantity: (product_id: string, type: 'plus' | 'minus') => void;
   totalQuantity: number;
 }
 
-// Create Context
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// CartProvider Component
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [totalQuantity, setTotalQuantity] = useState(0);
 
-  // Load cart from localStorage on component mount
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
@@ -36,14 +35,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     const newTotalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
     setTotalQuantity(newTotalQuantity);
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Add a product to the cart
   const addToCart = (product_id: string) => {
     console.log(`Attempting to add product with ID: ${product_id}`);
     setCart(prevCart => {
@@ -61,7 +58,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Change the quantity of a product in the cart
+  const removeFromCart = (product_id: string) => {
+    console.log(`Removing product with ID: ${product_id}`);
+    setCart(prevCart => prevCart.filter(item => item.product_id !== product_id));
+  };
+
   const changeQuantity = (product_id: string, type: 'plus' | 'minus') => {
     console.log(`Changing quantity for product ID: ${product_id}, type: ${type}`);
     setCart(prevCart => {
@@ -90,7 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Provide context value
   return (
-    <CartContext.Provider value={{ cart, addToCart, changeQuantity, totalQuantity }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, changeQuantity, totalQuantity }}>
       {children}
     </CartContext.Provider>
   );

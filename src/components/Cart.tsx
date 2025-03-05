@@ -21,14 +21,11 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, products }) => {
   const { cart, changeQuantity } = useCart();
   const navigate = useNavigate();
 
-  // Log cart state and products for debugging
   console.log('Cart state in Cart component:', cart);
   console.log('Products prop in Cart component:', products);
 
-  // Render nothing if the cart is not open
   if (!isOpen) return null;
 
-  // Calculate the total price of the cart
   const calculateTotal = () => {
     return cart.reduce((total, item) => {
       const product = products.find(p => p.id === item.product_id);
@@ -38,8 +35,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, products }) => {
 
   return (
     <div className="cart-overlay">
-      <div className="cart-container">
-        {/* Cart Header */}
+      <div className="cart-container-products">
         <div className="cart-header">
           <h2>Shopping Cart</h2>
           <button onClick={onClose} className="close-cart" aria-label="Close Cart">
@@ -47,7 +43,6 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, products }) => {
           </button>
         </div>
 
-        {/* Cart Items */}
         <div className="cart-items">
           {cart.length === 0 ? (
             <div className="empty-cart">
@@ -63,17 +58,14 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, products }) => {
 
               return (
                 <div key={item.product_id} className="cart-item">
-                  {/* Product Image */}
                   <div className="item-image">
                     <img src={product.image} alt={product.name} />
                   </div>
 
-                  {/* Product Details */}
                   <div className="item-details">
                     <h3>{product.name}</h3>
                     <p className="item-price">${(product.price * item.quantity).toFixed(2)}</p>
 
-                    {/* Quantity Controls */}
                     <div className="quantity-controls">
                       <button
                         className="quantity-btn"
@@ -99,16 +91,13 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, products }) => {
           )}
         </div>
 
-        {/* Cart Footer */}
         {cart.length > 0 && (
           <div className="cart-footer">
-            {/* Total Price */}
             <div className="total">
               <span>Total:</span>
               <span>${calculateTotal().toFixed(2)}</span>
             </div>
 
-            {/* Proceed to Checkout Button */}
             <button
               className="checkout-btn"
               onClick={() => navigate('/checkout')}

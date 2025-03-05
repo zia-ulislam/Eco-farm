@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { Truck } from 'lucide-react';
+import { Truck, Minus, Plus, Trash2 } from 'lucide-react';
 import './styles.css';
 
 interface Product {
@@ -13,11 +13,10 @@ interface Product {
 }
 
 const CheckoutPage = () => {
-  const { cart } = useCart();
+  const { cart, removeFromCart, changeQuantity } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // State for form data
   const [formData, setFormData] = useState({
     name: user?.name || '',
     phone: '',
@@ -27,10 +26,8 @@ const CheckoutPage = () => {
     postalCode: '',
   });
 
-  // State for products data
   const [products, setProducts] = useState<Product[]>([]);
 
-  // Fetch products data on component mount
   useEffect(() => {
     fetch('/products.json')
       .then(response => {
@@ -40,7 +37,6 @@ const CheckoutPage = () => {
         return response.json();
       })
       .then(data => {
-        // Ensure IDs are strings
         const updatedData = data.map((product: Product) => ({
           ...product,
           id: String(product.id),
@@ -52,7 +48,6 @@ const CheckoutPage = () => {
       });
   }, []);
 
-  // Calculate total price of the cart
   const calculateTotal = () => {
     return cart.reduce((total, item) => {
       const product = products.find(p => p.id === item.product_id);
@@ -60,11 +55,9 @@ const CheckoutPage = () => {
     }, 0);
   };
 
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form data
     if (
       !formData.name ||
       !formData.phone ||
@@ -77,14 +70,10 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Log the order details (replace this with actual backend API call)
     console.log('Order submitted:', { formData, cart });
-
-    // Redirect to home page after successful submission
     navigate('/');
   };
 
-  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
@@ -102,7 +91,6 @@ const CheckoutPage = () => {
         </div>
 
         <form className="checkout-form" onSubmit={handleSubmit}>
-          {/* Shipping Information Section */}
           <div className="form-section">
             <h2>Shipping Information</h2>
             <div className="form-grid">
@@ -175,7 +163,6 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* Order Summary Section */}
           <div className="form-section">
             <h2>Order Summary</h2>
             <div className="order-items">
@@ -191,8 +178,43 @@ const CheckoutPage = () => {
                       <img src={product.image} alt={product.name} />
                       <div className="item-details">
                         <h3>{product.name}</h3>
-                        <p className="quantity">Quantity: {item.quantity}</p>
                         <p className="price">${(product.price * item.quantity).toFixed(2)}</p>
+                        <div className="controls-container">
+                          <div className="quantity-controls">
+                            <button
+                              className="quantity-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                changeQuantity(item.product_id, 'minus');
+                              }}
+                              disabled={item.quantity <= 1}
+                              aria-label="Decrease Quantity"
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className="quantity-value">{item.quantity}</span>
+                            <button
+                              className="quantity-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                changeQuantity(item.product_id, 'plus');
+                              }}
+                              aria-label="Increase Quantity"
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
+                          <button
+                            className="delete-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFromCart(item.product_id);
+                            }}
+                            aria-label="Remove Item"
+                          >
+                            <Trash2 size={16} /> Remove
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -205,7 +227,6 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button type="submit" className="submit-button">
             <Truck className="truck-icon" />
             Complete Order

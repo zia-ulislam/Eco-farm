@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { Check } from 'lucide-react';
+import Cart from './Cart';
 import './Tabs.css';
 
 interface Product {
@@ -51,7 +52,7 @@ function Tabs() {
   const { addToCart } = useCart();
 
   useEffect(() => {
-    fetch('/products.json')
+    fetch('public/products.json')
       .then(response => response.json())
       .then(data => {
         // Ensure IDs are strings
@@ -78,7 +79,9 @@ function Tabs() {
 
   const handleAddToCart = (productId: string) => {
     console.log(`Adding product with ID: ${productId}`);
-    addToCart(String(productId)); // Ensure productId is a string
+    console.log("__________________ start ____________________")
+    addToCart(productId); // Ensure productId is a string
+    console.log("__________________ end ____________________")
   };
 
   const handleViewProduct = (product: Product) => {
@@ -207,6 +210,9 @@ function Tabs() {
                         alt={selectedProduct.growthMaterials.fertilizer.name}
                       />
                       <span>{selectedProduct.growthMaterials.fertilizer.name}</span>
+                      <span className="material-price">
+                        ${selectedProduct.growthMaterials.fertilizer.price}
+                      </span>
                       {selectedMaterials[selectedProduct.growthMaterials.fertilizer.name] && (
                         <Check className="check-icon" size={20} />
                       )}
@@ -225,6 +231,7 @@ function Tabs() {
                         >
                           <img src={material.image} alt={material.name} />
                           <span>{material.name}</span>
+                          <span className="material-price">${material.price}</span>
                           {selectedMaterials[material.name] && (
                             <Check className="check-icon" size={20} />
                           )}
@@ -250,5 +257,6 @@ function Tabs() {
     </section>
   );
 }
+
 
 export default Tabs;

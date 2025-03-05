@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
+import {
   Home,
   ShoppingBag,
   MessageCircle,
@@ -12,36 +12,92 @@ import {
   LogIn,
   LogOut,
   Settings,
-  UserCircle
+  UserCircle,
+  X,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Cart from './Cart';
+import ProductPopup from './ProductPopup';
 import './Navbar.css';
 
-// Mock products data - replace with your actual products data
-const mockProducts = [
-  {
-    id: '1',
-    name: 'Product 1',
-    price: 99.99,
-    image: 'https://images.unsplash.com/photo-1518843875459-f738682238a6?auto=format&fit=crop&q=80&w=300&h=300'
-  }
-];
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  category?: string;
+  growthMaterials?: {
+    fertilizer?: {
+      name: string;
+      image: string;
+    };
+    additionalMaterials?: Array<{
+      name: string;
+      image: string;
+    }>;
+  };
+}
 
 const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isProductPopupOpen, setIsProductPopupOpen] = useState(false);
   const { totalQuantity } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
 
-  
+  // Fetch products from products.json
+  useEffect(() => {
+    fetch('public/products.json')
+      .then((response) => response.json())
+      .then((data) => {
+        const updatedData = data.map((product: Product) => ({
+          ...product,
+          id: String(product.id),
+        }));
+        setProducts(updatedData);
+      })
+      .catch((error) => {
+        console.error('Error loading products:', error);
+      });
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    const filtered = products.filter((product) =>
+      product.name.toLowerCase().includes(query)
+    );
+    setFilteredProducts(filtered);
+  };
 
   const handleLogout = () => {
     logout();
     setIsProfileOpen(false);
+  };
+
+  const handleCartItems = () => {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const cartItemIds = cartItems.map(item => item.product_id);
+    const cartProducts = products.filter(product =>
+      cartItemIds.includes(`${product.id}`)
+    );
+    setFilteredProducts(cartProducts);
+    setIsCartOpen(true);
+  };
+
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsProductPopupOpen(true);
+    setSearchQuery(''); // Clear search after selection
   };
 
   return (
@@ -49,7 +105,7 @@ const Navbar = () => {
       {/* Desktop Navigation */}
       <nav className="desktop-nav">
         <div className="brand">
-          <img src="/public/images/logo.png" alt="Eco Farm" />
+          <img src="/images/logo.png" alt="Eco Farm" />
           <h1>Eco Farm</h1>
         </div>
 
@@ -65,11 +121,38 @@ const Navbar = () => {
             <input
               type="text"
               placeholder="Search..."
+              value={searchQuery}
+              onChange={handleSearchChange}
             />
             <Search className="search-icon" />
+            {searchQuery && (
+              <div className="search-results">
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <div 
+                      key={product.id} 
+                      className="search-result-item"
+                      onClick={() => handleProductClick(product)}
+                    >
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="search-result-image"
+                      />
+                      <div className="search-result-info">
+                        <p>{product.name}</p>
+                        <p>${product.price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p>No results found</p>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="cart-container" onClick={() => setIsCartOpen(true)}>
+          <div className="cart-container" onClick={handleCartItems}>
             <ShoppingCart />
             {totalQuantity > 0 && (
               <span className="cart-badge">{totalQuantity}</span>
@@ -78,13 +161,13 @@ const Navbar = () => {
 
           {isAuthenticated ? (
             <div className="profile-container">
-              <button 
+              <button
                 className="profile-button"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
               >
                 <UserCircle className="user-icon" />
               </button>
-              
+
               {isProfileOpen && (
                 <div className="profile-dropdown">
                   <div className="profile-header">
@@ -95,11 +178,19 @@ const Navbar = () => {
                     </div>
                   </div>
                   <div className="profile-menu">
-                    <Link to="/profile" className="profile-item" onClick={() => setIsProfileOpen(false)}>
+                    <Link
+                      to="/profile"
+                      className="profile-item"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
                       <User size={16} />
                       <span>Profile</span>
                     </Link>
-                    <Link to="/settings" className="profile-item" onClick={() => setIsProfileOpen(false)}>
+                    <Link
+                      to="/settings"
+                      className="profile-item"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
                       <Settings size={16} />
                       <span>Settings</span>
                     </Link>
@@ -125,7 +216,7 @@ const Navbar = () => {
         {/* Top Bar */}
         <div className="mobile-header">
           <div className="brand">
-            <img src="/public/images/logo.png" alt="Eco Farm" />
+            <img src="/images/logo.png" alt="Eco Farm" />
             <h1>Eco Farm</h1>
           </div>
 
@@ -136,7 +227,7 @@ const Navbar = () => {
                 <span className="cart-badge">{totalQuantity}</span>
               )}
             </div>
-            <Menu 
+            <Menu
               className="menu-icon"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             />
@@ -149,8 +240,35 @@ const Navbar = () => {
             <input
               type="text"
               placeholder="Search..."
+              value={searchQuery}
+              onChange={handleSearchChange}
             />
             <Search className="search-icon" />
+            {searchQuery && (
+              <div className="search-results">
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <div 
+                      key={product.id} 
+                      className="search-result-item"
+                      onClick={() => handleProductClick(product)}
+                    >
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="search-result-image"
+                      />
+                      <div className="search-result-info">
+                        <p>{product.name}</p>
+                        <p>${product.price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p>No results found</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -173,7 +291,7 @@ const Navbar = () => {
             <span>Contact</span>
           </Link>
           {isAuthenticated ? (
-            <button 
+            <button
               className="nav-item"
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
@@ -194,7 +312,7 @@ const Navbar = () => {
             <div className="menu-content">
               <div className="menu-header">
                 <h2>Menu</h2>
-                <button 
+                <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="close-button"
                 >
@@ -224,11 +342,20 @@ const Navbar = () => {
       </div>
 
       {/* Cart Sidebar */}
-      <Cart 
+      <Cart
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        products={mockProducts}
+        products={filteredProducts.length > 0 ? filteredProducts : []}
       />
+
+      {/* Product Popup */}
+      {selectedProduct && (
+        <ProductPopup
+          product={selectedProduct}
+          isOpen={isProductPopupOpen}
+          onClose={() => setIsProductPopupOpen(false)}
+        />
+      )}
     </>
   );
 };

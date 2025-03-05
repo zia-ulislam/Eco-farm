@@ -17,9 +17,10 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products }) => {
-  const { addToCart } = useCart();
+  const { addToCart } = useCart()
 
   const handleAddToCart = (productId: string) => {
+    console.log(productId)
     addToCart(productId);
     alert('Item added to cart!');
   };
